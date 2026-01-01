@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "person_key": "me",
+  "analysis_timezone": "Asia/Shanghai",
+  "pano_logs": [
+    {
+      "device_key": "phone",
+      "stream_name": "pano-main-001",
+      "path": "inbox/phone/pano.jsonl",
+      "collector_version": "4.46",
+      "rule_note": "请填写手机实际记录阈值；未知时保持 unknown"
+    },
+    {
+      "device_key": "tablet",
+      "stream_name": "pano-main-001",
+      "path": "inbox/tablet/pano.jsonl",
+      "collector_version": "4.46",
+      "rule_note": "请填写平板实际记录阈值；未知时保持 unknown"
+    }
+  ]
+}

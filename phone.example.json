@@ -1,0 +1,9 @@
+{
+  "version": 1,
+  "device_key": "phone",
+  "person_key": "me",
+  "stream_name": "pano-main-001",
+  "remote": "/sdcard/Download/music/pano.jsonl",
+  "collector_version": "unknown",
+  "rule_note": "unknown"
+}

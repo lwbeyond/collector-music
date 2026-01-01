@@ -1,0 +1,488 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="dark"><meta name="theme-color" content="#111315">
+  <title>音乐手记 · 私人听歌档案与数据分析</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/style.css"><script src="/analytics.js" defer></script><script src="/reports.js" defer></script><script src="/app.js" defer></script>
+</head>
+<body>
+<a class="skip" href="#overview">跳转到数据</a>
+
+<header class="masthead wrap">
+  <a class="brand" href="#overview">
+    <div class="brand-icon" aria-hidden="true">
+      <svg viewBox="0 0 36 36">
+        <circle cx="18" cy="18" r="14"/>
+        <circle cx="18" cy="18" r="6"/>
+        <path d="M18 0v10m0 16v10M0 18h10m16 0h10M5 5l7 7m12 12 7 7M5 31l7-7m12-12 7-7"/>
+      </svg>
+    </div>
+    <span>音乐手记</span>
+  </a>
+  <nav aria-label="主要导航">
+    <a href="#overview">概览</a>
+    <a href="#records">收听历史</a>
+    <a href="#analytics">数据分析</a>
+    <a href="#platform-reports">平台报告</a>
+    <a href="#library">榜单与收藏</a>
+    <a href="#sources">采集状态</a>
+  </nav>
+  <div class="masthead-actions">
+    <button class="button small masthead-update" id="update-guide">如何更新</button>
+    <button class="button small" id="refresh" title="重新读取已发布数据；采集新记录请点“如何更新”"><span aria-hidden="true" class="spin-icon">↻</span> <span id="refresh-label" role="status" aria-live="polite">刷新展示</span></button>
+  </div>
+</header>
+
+<main class="wrap">
+  <div id="notice" class="notice" role="status" hidden></div>
+
+  <!-- 00 / 首页主视觉 -->
+  <section id="overview" class="hero">
+    <div class="hero-copy">
+      <h1>常听，<em>常新。</em></h1>
+      <div class="hero-actions">
+        <a class="button primary" id="search-history" href="#records">查找收听记录 <span aria-hidden="true">↓</span></a>
+        <a class="button" href="#collection-panel" data-collection-shortcut="likes">我的红心歌曲 <span aria-hidden="true">♡</span></a>
+      </div>
+      <div class="hero-meta">
+        <span id="published-label">正在读取本地数据…</span>
+      </div>
+    </div>
+    <aside class="record-art" aria-label="最近一条设备记录">
+      <div class="art-bottom">
+        <span class="panel-note">最近一条设备记录</span>
+        <h2 id="latest-track">等待第一条设备记录</h2>
+        <p id="latest-artist">暂无同步的设备播放记录</p>
+        <span id="latest-time" class="art-time">设备本地记录</span>
+      </div>
+    </aside>
+  </section>
+
+  <!-- 核心数据指标概览卡 -->
+  <section class="stats" aria-label="已采集数据概览">
+    <a class="stat-card" href="#records" data-record-shortcut="pano">
+      <div class="stat-title">
+        <span>设备听歌记录</span>
+      </div>
+      <p class="stat-value" id="stat-pano">—</p>
+    </a>
+    <a class="stat-card" href="#records" data-record-shortcut="netease_recent">
+      <div class="stat-title">
+        <span>网易云近期记录</span>
+      </div>
+      <p class="stat-value" id="stat-recent">—</p>
+    </a>
+    <a class="stat-card" href="#collection-panel" data-collection-shortcut="likes">
+      <div class="stat-title">
+        <span>红心歌曲</span>
+      </div>
+      <p class="stat-value" id="stat-likes">—</p>
+      <p class="stat-desc" id="likes-note"></p>
+    </a>
+    <a class="stat-card" href="#collection-panel" data-collection-shortcut="playlists">
+      <div class="stat-title">
+        <span>歌单</span>
+      </div>
+      <p class="stat-value" id="stat-playlists">—</p>
+      <p class="stat-desc" id="playlists-note">已保存的歌单清单</p>
+    </a>
+  </section>
+
+  <!-- 01 / 收听历史 -->
+  <section id="records" class="section" aria-labelledby="records-title">
+    <div class="section-head">
+      <div>
+        <h2 id="records-title">收听历史</h2>
+      </div>
+      <span class="section-aside" id="record-count">读取中</span>
+    </div>
+    <div class="record-tools">
+      <label class="search">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="10" cy="10" r="6"/>
+          <path d="m15 15 5 5"/>
+        </svg>
+        <span class="sr-only">搜索歌名、艺人或专辑</span>
+        <input id="search" type="search" placeholder="搜索歌名、艺人或专辑" autocomplete="off">
+      </label>
+    </div>
+    <div class="history-filters">
+      <div class="filter-field"><label class="sr-only" for="record-source">记录来源</label>
+      <select id="record-source">
+        <option value="all">全部来源（核对）</option>
+        <option value="pano">设备记录</option>
+        <option value="netease_recent" selected>网易云近期</option>
+      </select>
+      </div>
+      <div class="filter-field"><label class="sr-only" for="record-period">记录时间</label>
+        <select id="record-period"><option value="all">全部时间</option><option value="7">近 7 天</option><option value="30">近 30 天</option><option value="90">近 90 天</option></select>
+      </div>
+      <div class="filter-field"><label class="sr-only" for="record-sort">排列顺序</label>
+        <select id="record-sort"><option value="newest">最新在前</option><option value="oldest">最早在前</option></select>
+      </div>
+      <div class="filter-field"><label class="sr-only" for="record-size">每页显示</label>
+        <select id="record-size"><option value="10">10 条 / 页</option><option value="25">25 条 / 页</option><option value="50">50 条 / 页</option></select>
+      </div>
+    </div>
+    <div class="record-filter-summary">
+      <span id="record-filter-label" class="panel-note" aria-live="polite"></span>
+      <button id="record-reset" class="text-button" hidden>重置筛选</button>
+    </div>
+    <p id="record-scope-note" class="panel-note">平台近期观测，不代表完整播放流水。</p>
+    <div class="table-scroll">
+      <table class="journal">
+        <thead>
+          <tr>
+            <th class="index-col">#</th>
+            <th>曲目 / 艺人</th>
+            <th class="album-col">专辑</th>
+            <th>播放时间</th>
+            <th>来源</th>
+          </tr>
+        </thead>
+        <tbody id="records-body"></tbody>
+      </table>
+    </div>
+    <div class="empty-state" id="records-empty" hidden>
+      <span aria-hidden="true">∿</span>
+      <h3 id="records-empty-title">未找到匹配的记录</h3>
+      <p id="records-empty-hint">请尝试更换搜索词，或调整来源筛选条件。</p>
+    </div>
+    <div class="pagination">
+      <span id="page-info" aria-live="polite">—</span>
+      <form id="record-page-form" class="page-jump">
+        <label for="record-page">第</label><input id="record-page" type="number" inputmode="numeric" min="1" value="1" aria-label="收听历史页码"><span id="record-pages">/ 1 页</span><button class="button small" type="submit">跳转</button>
+      </form>
+      <div class="pagination-buttons">
+        <button id="prev" class="icon-button" aria-label="上一页">←</button>
+        <button id="next" class="icon-button" aria-label="下一页">→</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 02 / 数据指标与听歌图谱 -->
+  <section id="analytics" class="section trend-section analytics-section" aria-labelledby="analytics-title">
+    <div class="section-head">
+      <div>
+        <h2 id="analytics-title">数据分析</h2>
+      </div>
+
+      <!-- 分析维度切换控制器 -->
+      <div class="analytics-tabs" role="tablist" aria-label="数据分析视图">
+        <button class="analytics-tab active" data-analytics-tab="trend" role="tab" aria-selected="true" aria-controls="view-trend">
+          走势
+        </button>
+        <button class="analytics-tab" data-analytics-tab="rhythm" role="tab" aria-selected="false" aria-controls="view-rhythm">
+          时段
+        </button>
+        <button class="analytics-tab" data-analytics-tab="artists" role="tab" aria-selected="false" aria-controls="view-artists">
+          艺人与曲目
+        </button>
+        <button class="analytics-tab" data-analytics-tab="matrix" role="tab" aria-selected="false" aria-controls="view-matrix">
+          指标
+        </button>
+      </div>
+    </div>
+
+      <div class="analytics-toolbar">
+        <div class="chart-controls">
+          <div class="segmented" aria-label="全部分析图表的数据来源">
+            <button data-chart-source="netease_recent" aria-pressed="true">网易云近期</button>
+            <button data-chart-source="pano" aria-pressed="false">设备记录</button>
+          </div>
+          <label class="sr-only" for="period">分析时间范围</label>
+          <select id="period">
+            <option value="7">近 7 天</option>
+            <option value="30" selected>近 30 天</option>
+            <option value="90">近 90 天</option>
+            <option value="365">近一年</option>
+            <option value="all">全部时间</option>
+            <option value="custom">自定义日期</option>
+          </select>
+          <div id="analysis-dates" class="analysis-dates" hidden>
+            <label>从 <input id="analysis-start" type="date" aria-label="分析开始日期"></label>
+            <label>至 <input id="analysis-end" type="date" aria-label="分析结束日期"></label>
+          </div>
+        </div>
+        <button id="analysis-export" class="button" disabled>导出每日统计 ↓</button>
+      </div>
+    <div class="tag-filters" aria-label="歌曲标签筛选">
+      <div class="tag-filter-field"><label for="filter-genre">曲风</label><select id="filter-genre"><option value="">全部曲风</option></select></div>
+      <div class="tag-filter-field"><label for="filter-language">语种</label><select id="filter-language"><option value="">全部语种</option></select></div>
+      <div class="tag-filter-field"><label for="filter-tag">推荐标签</label><select id="filter-tag"><option value="">全部标签</option></select></div>
+      <div class="tag-filter-field"><label for="filter-song-search">歌曲</label><input id="filter-song-search" type="search" placeholder="歌名 / 艺人 / 专辑 / ID" maxlength="200" autocomplete="off"></div>
+      <button id="tag-filter-reset" class="text-button" disabled>清空筛选</button>
+    </div>
+    <p id="tag-coverage-note" class="panel-note"></p>
+    <p id="analysis-scope-note" class="panel-note">各来源分别统计，不相加为总播放次数。</p>
+    <div class="analysis-status-row">
+      <p id="analysis-status" class="panel-note" role="status" aria-live="polite">正在读取分析数据…</p>
+      <button id="analysis-retry" class="text-button" hidden>重试分析</button>
+    </div>
+    <p id="analysis-comparison" class="analysis-comparison"></p>
+
+    <details id="catalog-results" class="catalog-results" open>
+      <summary id="catalog-summary">歌曲清单</summary>
+      <div class="catalog-table-wrap"><table class="catalog-table">
+        <thead><tr><th scope="col">歌曲 / 艺人</th><th scope="col">曲风</th><th scope="col">语种</th><th scope="col">推荐标签</th><th scope="col">本期观测</th></tr></thead>
+        <tbody id="catalog-body"></tbody>
+      </table></div>
+      <p id="catalog-empty" class="panel-note" hidden></p>
+      <div class="catalog-pagination"><span id="catalog-page-info" aria-live="polite"></span>
+        <div><button id="catalog-prev" class="icon-button" aria-label="歌曲上一页">←</button><button id="catalog-next" class="icon-button" aria-label="歌曲下一页">→</button></div>
+      </div>
+    </details>
+
+    <!-- 视图 1：时间走势图 -->
+    <div id="view-trend" class="analytics-view active" role="tabpanel">
+
+      <div class="chart-topline">
+        <p><strong id="chart-total">—</strong> <span>条已记录观测</span></p>
+        <div class="chart-legend">
+          <span><i></i>有记录</span>
+          <span><i class="unknown"></i>覆盖未知</span>
+        </div>
+      </div>
+
+      <div class="chart-wrap">
+        <svg id="chart" viewBox="0 0 1120 220" role="img" aria-labelledby="chart-title chart-desc">
+          <title id="chart-title">按日期的已记录条数</title>
+          <desc id="chart-desc">正在读取数据</desc>
+        </svg>
+        <div id="chart-tooltip" class="tooltip" role="status" hidden></div>
+      </div>
+
+      <div class="chart-footer">
+        <span id="chart-range">—</span>
+      </div>
+    </div>
+
+    <!-- 视图 2：24小时时段偏好分析 -->
+    <div id="view-rhythm" class="analytics-view" role="tabpanel" hidden>
+      <div class="rhythm-header">
+        <div class="rhythm-summary">
+          <p id="rhythm-highlight" class="rhythm-sub">按已归档记录在当地时区的播放时刻统计</p>
+        </div>
+      </div>
+      <div class="rhythm-chart-container">
+        <div id="rhythm-bars" class="rhythm-bars"></div>
+      </div>
+      <div class="rhythm-footer">
+        <span id="rhythm-peak-time">正在分析峰值时段…</span>
+      </div>
+      <div class="heatmap-heading">
+        <h3>星期与小时</h3>
+        <span class="panel-note">浅色记录多 · 空格覆盖未知</span>
+      </div>
+      <div class="heatmap-scroll"><div id="rhythm-heatmap" class="rhythm-heatmap" aria-label="星期与小时分布"></div></div>
+      <p id="rhythm-cell-detail" class="panel-note" aria-live="polite"></p>
+    </div>
+
+    <!-- 视图 3：偏好艺人分析 -->
+    <div id="view-artists" class="analytics-view" role="tabpanel" hidden>
+      <div class="artists-header">
+        <h3>艺人 / 组合 · 前 10</h3>
+        <p class="panel-note">合作标签不拆分，占比按全部观测计算。</p>
+      </div>
+      <div id="artists-chart" class="artists-chart-list"></div>
+      <div class="artists-footer">
+        <span id="artists-summary-label">—</span>
+      </div>
+      <h3 class="analysis-subtitle">曲目 · 前 10</h3>
+      <div id="analysis-tracks" class="analysis-tracks"></div>
+    </div>
+
+    <!-- 视图 4：数据指标矩阵与扩展插槽 -->
+    <div id="view-matrix" class="analytics-view" role="tabpanel" hidden>
+      <div class="matrix-grid">
+        <div class="matrix-card">
+          <span class="matrix-label">有记录日均条数</span>
+          <span class="matrix-value" id="matrix-daily-avg">—</span>
+        </div>
+        <div class="matrix-card">
+          <span class="matrix-label">不同曲目占比</span>
+          <span class="matrix-value" id="matrix-diversity">—</span>
+        </div>
+        <div class="matrix-card">
+          <span class="matrix-label">艺人标签数</span>
+          <span class="matrix-value" id="matrix-artists-count">—</span>
+        </div>
+        <div class="matrix-card">
+          <span class="matrix-label">单日最高记录</span>
+          <span class="matrix-value" id="matrix-peak-day">—</span>
+          <p class="matrix-hint" id="matrix-peak-date">当前来源、所选日期范围的峰值</p>
+        </div>
+        <div class="matrix-card"><span class="matrix-label">有记录日期</span><span class="matrix-value" id="matrix-active-days">—</span><p class="matrix-hint" id="matrix-calendar-days">有记录的天数 / 所选天数</p></div>
+        <div class="matrix-card"><span class="matrix-label">不同曲目数</span><span class="matrix-value" id="matrix-tracks">—</span></div>
+        <div class="matrix-card"><span class="matrix-label">最长连续记录</span><span class="matrix-value" id="matrix-streak">—</span></div>
+        <div class="matrix-card"><span class="matrix-label">凌晨观测占比</span><span class="matrix-value" id="matrix-night">—</span><p class="matrix-hint">当地时间 00:00–05:59</p></div>
+      </div>
+
+      <details class="analysis-insights"><summary>记录摘要</summary><ul id="analysis-insights"></ul></details>
+      <details class="analysis-methods"><summary>这些指标如何计算</summary>
+        <p>有记录日均 = 观测条数 ÷ 有记录天数；不同曲目占比 = 不同曲目数 ÷ 观测条数。同名曲目可能有不同版本，设备曲目按来源标签标识，网易云按平台曲目 ID 标识。</p>
+        <p>艺人标签数按不同的艺人/组合标签计数，不拆分合作艺人。单日峰值并列时展示最早日期；最长连续记录按连续有观测的自然日计算。</p>
+        <p>对比区间为紧邻所选范围之前的等长自然日；全部时间不作对比。记录增减可能来自采集覆盖变化，不代表真实收听增减。没有观测的日期和时段均不能证明没有播放。</p>
+        <p>设备日志与网易云近期观测独立统计，喜欢操作和平台汇总榜单不参与。网易云时间使用上游 playTime，其播放语义仍未确认；当前无法计算实际听歌时长。</p>
+      </details>
+      <div id="analytics-custom-slot" hidden></div>
+    </div>
+  </section>
+
+  <section id="platform-reports" class="section platform-reports" aria-labelledby="reports-title">
+    <div class="section-head">
+      <h2 id="reports-title">网易云报告</h2>
+      <div class="report-period-control">
+        <label class="sr-only" for="report-period">报告月份</label>
+        <select id="report-period" disabled><option value="">尚无报告</option></select>
+      </div>
+    </div>
+    <p id="reports-status" class="panel-note" role="status" aria-live="polite">尚未采集平台报告。</p>
+    <p id="reports-issues" class="panel-note" hidden></p>
+    <div id="reports-content" hidden>
+      <div id="report-metrics" class="report-metrics"></div>
+      <div id="report-daily-section" class="report-daily-section" hidden>
+        <h3>每日收听 <span class="report-unit">分钟</span></h3>
+        <div id="report-daily" class="report-daily" role="group" aria-label="平台每日收听时长"></div>
+        <div id="report-daily-range" class="report-daily-range"></div>
+        <p id="report-daily-detail" class="panel-note" role="status" aria-live="polite"></p>
+      </div>
+      <div id="report-breakdowns" class="report-breakdowns"></div>
+      <p id="report-source-note" class="panel-note"></p>
+    </div>
+    <details id="report-preference" class="report-preference" hidden>
+      <summary>当前曲风偏好</summary>
+      <p id="report-preference-date" class="panel-note"></p>
+      <div id="report-preference-tags" class="report-breakdowns"></div>
+    </details>
+    <details class="analysis-methods report-methods">
+      <summary>平台报告口径</summary>
+      <p>完整月报与实时快照按网易云返回的月份分别保存；实时快照只覆盖截至采集时的进度。平台汇总不与本地观测条数相加。</p>
+      <p>曲风、语种、年代和偏好沿用平台分类；分类占比不保证覆盖全部歌曲。缺失字段保持未知，歌曲标签不能说明听歌时的个人情绪。</p>
+    </details>
+  </section>
+
+  <!-- 03 / 榜单与收藏 -->
+  <section id="library" class="section library-grid" aria-label="榜单与收藏">
+    <div class="ranking-panel">
+      <div class="section-head">
+        <div>
+          <h2>高频收听榜</h2>
+        </div>
+        <label class="sr-only" for="ranking-scope">榜单范围</label>
+        <select id="ranking-scope">
+          <option value="week">网易云周榜</option>
+          <option value="all">网易云总榜</option>
+        </select>
+      </div>
+      <p class="panel-note" id="ranking-note">平台榜单快照，不与设备记录累加。</p>
+      <ol class="ranking-list" id="ranking-list"></ol>
+      <button id="ranking-more" class="text-button">展开更多 ↓</button>
+    </div>
+
+    <div class="collection-panel" id="collection-panel">
+      <div class="section-head">
+        <div>
+          <h2>我的收藏</h2>
+        </div>
+        <div class="segmented" aria-label="收藏类型">
+          <button data-collection="playlists" aria-pressed="true">歌单</button>
+          <button data-collection="likes" aria-pressed="false">红心</button>
+        </div>
+      </div>
+      <p class="panel-note" id="collection-note">正在读取收藏。</p>
+      <div class="record-tools collection-tools">
+        <label class="search">
+          <span class="sr-only">搜索收藏</span>
+          <input id="collection-search" type="search" placeholder="搜索歌单名称" autocomplete="off">
+        </label>
+        <label class="sr-only" for="collection-kind">歌单类型</label>
+        <select id="collection-kind">
+          <option value="all">全部歌单</option>
+          <option value="created">我创建的</option>
+          <option value="subscribed">我收藏的</option>
+        </select>
+      </div>
+      <div id="collection-list" class="collection-list"></div>
+      <button id="collection-reset" class="text-button collection-reset" hidden>清空搜索与筛选</button>
+      <div id="collection-pagination" class="pagination">
+        <span id="collection-page-info" aria-live="polite">—</span>
+        <form id="collection-page-form" class="page-jump">
+          <label for="collection-page">第</label><input id="collection-page" type="number" inputmode="numeric" min="1" value="1" aria-label="收藏页码"><span id="collection-pages">/ 1 页</span><button class="button small" type="submit">跳转</button>
+        </form>
+        <div class="pagination-buttons">
+          <button id="collection-prev" class="icon-button" aria-label="收藏上一页">←</button>
+          <button id="collection-next" class="icon-button" aria-label="收藏下一页">→</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 04 / 采集状态 -->
+  <section id="sources" class="section sources-section" aria-labelledby="sources-title">
+    <div class="section-head">
+      <div>
+        <h2 id="sources-title">采集状态</h2>
+      </div>
+      <button id="help" class="button">如何更新数据 <span aria-hidden="true">↗</span></button>
+    </div>
+    <div class="source-grid" id="source-grid"></div>
+    <details class="quality">
+      <summary>关于这份档案的统计口径 <span aria-hidden="true">+</span></summary>
+      <div>
+        <p>设备记录与网易云近期观测可能指向同一次播放，因此不相加为“总播放次数”。Pano 记录达到阈值的播放；平台近期列表不能恢复全部历史。</p>
+        <p>歌曲长度不是实际聆听时长；没有记录的日期也不代表完全没有听歌。榜单、红心与歌单展示最近一次成功采集的快照，采集失败时保留并标注旧数据。</p>
+        <p id="version-info"></p>
+      </div>
+    </details>
+  </section>
+
+  <footer>
+    <a class="footer-wordmark" href="#overview">音乐手记</a>
+    <p>本地档案 · 仅本机可见</p>
+  </footer>
+</main>
+
+<dialog id="artist-dialog" aria-labelledby="artist-dialog-title">
+  <div class="dialog-head"><button class="icon-button" id="close-artist" aria-label="关闭艺人明细">×</button></div>
+  <h2 id="artist-dialog-title">艺人明细</h2>
+  <p id="artist-dialog-note" class="panel-note" role="status"></p>
+  <div id="artist-dialog-tracks" class="analysis-tracks"></div>
+</dialog>
+
+<dialog id="help-dialog" aria-labelledby="help-title">
+  <div class="dialog-head">
+    <button class="icon-button" id="close-help" aria-label="关闭说明">×</button>
+  </div>
+  <h2 id="help-title">数据同步与更新指南</h2>
+  <div class="help-step">
+    <span>01</span>
+    <div>
+      <h3>接收手机记录</h3>
+      <p>手机连接 USB 后，双击项目根目录的 <strong>03-接收手机日志.cmd</strong>。手机继续写自己的日志，电脑接收完整副本并保存新增记录。</p>
+    </div>
+  </div>
+  <div class="help-step">
+    <span>02</span>
+    <div>
+      <h3>更新网易云资料</h3>
+      <p>双击 <strong>02-采集账号快照.cmd</strong>，读取近期记录、榜单与收藏。登录过期时，先打开 <strong>01-网易云登录.cmd</strong>。</p>
+    </div>
+  </div>
+  <div class="help-step">
+    <span>03</span>
+    <div>
+      <h3>刷新页面展示</h3>
+      <p>采集完成后点击顶部的“刷新展示”。本页面展示已归档发布的数据，刷新本身不会向手机或网易云发起采集。</p>
+    </div>
+  </div>
+  <button class="button primary" id="help-done">知道了</button>
+</dialog>
+
+<noscript>
+  <p class="notice wrap">请开启 JavaScript 查看本地数据。</p>
+</noscript>
+</body>
+</html>

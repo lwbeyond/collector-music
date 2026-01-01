@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools==82.0.1"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "collector-music"
+version = "0.1.0"
+description = "Local personal music observations, provenance and versioned analytical snapshots"
+requires-python = ">=3.11"
+dependencies = ["duckdb==1.5.6", "tzdata==2026.4"]
+
+[project.scripts]
+collector-music = "collector_music.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["collector_music*"]
+
+[tool.setuptools.package-data]
+collector_music = ["web/*.html", "web/*.css", "web/*.js", "web/*.svg"]

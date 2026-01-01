@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "enabled": true,
+  "person_key": "me",
+  "interval_seconds": {
+    "recent": 10800,
+    "library": 86400,
+    "reports": 86400,
+    "tags": 900,
+    "backup": 86400,
+    "audit": 604800
+  }
+}

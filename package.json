@@ -1,0 +1,24 @@
+{
+  "name": "collector-music-adapter",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "test:ui": "node tests/dashboard.browser.mjs",
+    "test:analytics": "node tests/analytics.browser.mjs",
+    "test:reports": "node tests/reports.browser.mjs",
+    "test:tags": "node tests/tag_filters.browser.mjs"
+  },
+  "description": "Read-only local adapter for NetEase music data",
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "@neteasecloudmusicapienhanced/api": "4.40.1"
+  },
+  "overrides": {
+    "basic-ftp": "6.2.1"
+  },
+  "devDependencies": {
+    "playwright": "1.63.0"
+  }
+}
